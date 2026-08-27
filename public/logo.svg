@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="160" viewBox="0 0 640 160" role="img" aria-label="Text2Excalidraw — from prompt to diagram">
   <defs>
     <linearGradient id="badge" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#8b87ff"/>
-      <stop offset="100%" stop-color="#6965db"/>
+      <stop offset="0%" stop-color="#a5a0ff"/>
+      <stop offset="100%" stop-color="#8b87ff"/>
     </linearGradient>
   </defs>
 
@@ -15,5 +15,5 @@
   </g>
 
   <!-- wordmark -->
-  <text x="104" y="70" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#2d3748">Text2<tspan fill="#8b87ff">Excalidraw</tspan></text>
+  <text x="104" y="70" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#44507a">Text2<tspan fill="#8b87ff">Excalidraw</tspan></text>
 </svg>
