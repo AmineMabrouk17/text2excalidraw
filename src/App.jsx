@@ -44,6 +44,18 @@ function sanitizeMermaid(src) {
     line = line.replace(/:::[A-Za-z0-9_-]+/g, "");
     // remove standalone style/class directives that may appear mid-body
     if (/^\s*(style|click)\s+\w+/i.test(line)) continue;
+    // Mermaid v10 rejects inline "%% comment" on a line that already has a
+    // link arrow, so strip any trailing comment before normalizing.
+    line = line.replace(/%%.*$/, "");
+    // Mermaid v10's lexer treats "(" in an unquoted "[...]" label as a shape
+    // token (cylinder/stadium start), so [API Gateway (mTLS)] breaks. Quote
+    // such labels so the parens become plain text. Shapes like id[(Database)]
+    // (inner starts with "(") are left alone.
+    line = line.replace(/\[([^\[\]]*)\]/g, (m, inner) =>
+      /[()]/.test(inner) && !inner.startsWith("(") && !inner.includes('"')
+        ? `["${inner}"]`
+        : m
+    );
     out.push(line);
   }
   let text = out.join("\n");
