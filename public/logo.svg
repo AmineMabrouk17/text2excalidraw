@@ -15,5 +15,5 @@
   </g>
 
   <!-- wordmark -->
-  <text x="104" y="70" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#44507a">Text2<tspan fill="#8b87ff">Excalidraw</tspan></text>
+  <text x="104" y="70" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#ffffff">Text2<tspan fill="#8b87ff">Excalidraw</tspan></text>
 </svg>
