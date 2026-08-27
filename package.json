@@ -1,0 +1,29 @@
+{
+  "name": "text2excalidraw",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Turn natural language prompts directly into editable Excalidraw diagrams using free LLM APIs.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "^0.17.6",
+    "@excalidraw/mermaid-to-excalidraw": "^1.0.4",
+    "mermaid": "^10.9.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "puppeteer-core": "^23.11.1",
+    "vite": "^5.4.0"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
+  }
+}
