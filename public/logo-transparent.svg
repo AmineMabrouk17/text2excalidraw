@@ -14,5 +14,5 @@
     <path d="M33 40 L48 52" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
   </g>
 
-  <text x="320" y="172" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#1f2430">Text2<tspan fill="#6965db">Excalidraw</tspan></text>
+  <text x="320" y="172" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#ffffff">Text2<tspan fill="#6965db">Excalidraw</tspan></text>
 </svg>
