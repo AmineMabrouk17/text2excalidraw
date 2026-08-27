@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.svg" alt="Text2Excalidraw logo" width="420" />
+  <img src="public/logo.svg" alt="Text2Excalidraw logo" width="420" />
 </p>
 
 <h1 align="center">Text2Excalidraw</h1>
