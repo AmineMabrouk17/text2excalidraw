@@ -65,10 +65,16 @@ Then open **http://localhost:3000** in your browser.
 > [nodejs.org](https://nodejs.org) (choose the "LTS" version) — that's the only
 > thing you need on your computer.
 
-### 2. Add a free AI key (one time)
+### 2. Pick a provider (optional — it works without doing this)
 
-The app uses a free AI to turn your words into a diagram. Pick a provider from
-the dropdown at the top and paste a **free** key:
+Every provider works out of the box:
+
+- By default the site uses its **built-in shared key** (hidden server-side —
+  visitors can use it freely but can never see or retrieve it).
+- Ticking **"Use my own key"** pastes in your own key for higher limits /
+  full privacy; it's saved only in your browser and sent straight to that
+  provider, never through our server.
+- **Ollama** is 100% local, so it always uses *your* machine — no key at all.
 
 | Provider | Free key from | Notes |
 | --- | --- | --- |
@@ -77,8 +83,8 @@ the dropdown at the top and paste a **free** key:
 | **OpenRouter** | [openrouter.ai/keys](https://openrouter.ai/keys) | Many free open-source models. |
 | **Ollama** (local) | — none needed | Runs AI on your own computer. 100% offline & private. |
 
-Your key is saved **only in your browser** (local storage). It is never uploaded
-to any server except the AI provider you chose.
+A key you paste is saved **only in your browser** (local storage). It is never
+uploaded to any server except the AI provider you chose.
 
 ### 3. Type and generate
 
@@ -100,24 +106,60 @@ The clearer your sentence, the better the diagram.
 
 ## 🔒 Privacy
 
-- This is a **client-side app** — there is no backend server collecting your data.
-- Your API key lives in your browser's local storage.
-- Your prompts go straight to the AI provider you selected.
+- **Shared-key mode:** prompts go to our Vercel function (`/api/generate`),
+  which holds the site's API keys as server-side secrets and relays your
+  prompt to the provider. The keys are **never sent to your browser**, so
+  visitors can use them but can never see or retrieve them. A per-IP rate
+  limit protects the shared keys from abuse.
+- **Your own key:** with **"Use my own key"** ticked, your key lives only in
+  your browser's local storage and your prompts go **directly** from your
+  browser to the AI provider you chose — they don't transit our server.
+- **Ollama:** fully offline on your own machine.
 
 ---
 
 ## ❓ FAQ
 
-**Do I have to pay?** No. Every provider above has a free tier.
+**Do I have to pay?** No. The built-in shared key is free to use, and every
+provider above also has a personal free tier.
 
-**Can I use it without an API key?** Yes — choose **Ollama (local)** and run a
-model on your machine with `ollama run llama3`.
+**Why can't I see the built-in key?** It's stored as a secret on our server and
+only ever used server-side. It's deliberately impossible for a visitor to
+retrieve — that's what keeps it from being leaked or stolen.
+
+**Can I use it without an API key?** Yes. The shared key works with
+Gemini/Groq/OpenRouter, and **Ollama (local)** needs no key at all — just run
+a model with `ollama run llama3`.
 
 **Is the diagram editable?** Yes. It's a normal Excalidraw drawing — move, recolor,
 rename, delete, export.
 
 **It says "Mermaid parse error".** The AI returned slightly broken diagram code.
 Just re-run with a clearer description.
+
+**The shared key hit its rate limit?** Cool down for a minute, or tick
+**"Use my own key"** and paste a free personal key — no limits.
+
+---
+
+## 🧑‍💻 Self-hosting (for the owner)
+
+Set your shared keys as Vercel-env secrets (never in the repo, never `VITE_*`):
+
+```bash
+vercel env add SERVER_GEMINI_API_KEY production
+vercel env add SERVER_GROQ_API_KEY production
+vercel env add SERVER_OPENROUTER_API_KEY production
+vercel deploy --prod
+```
+
+For local development of the shared-key flow, run the serverless function
+alongside Vite (Vite proxies `/api` → port 3001):
+
+```bash
+npm start            # terminal 1: the app on http://localhost:3000
+vercel dev -l 3001   # terminal 2: /api/generate locally
+```
 
 ---
 

@@ -1,14 +1,15 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Excalidraw, convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
-import { generateMermaid, PROVIDERS } from "./aiProviders";
+import { generateMermaid, generateMermaidFromServer, PROVIDERS } from "./aiProviders";
 import LoadingCanvas from "./LoadingCanvas";
 import "./index.css";
 
-// localStorage keys — keys stay in the browser only (per README). The active
-// provider + model are also persisted so the UI restores the last selection.
+// localStorage keys — the active provider + model and the user's own keys stay
+// in the browser only (per README). Shared/server keys never touch the browser.
 const LS = {
   keys: "t2e.keys", // { gemini, groq, openrouter, ollamaBase }
+  ownKey: "t2e.ownkey", // { gemini: true, ... } -> use my own key for a provider
   provider: "t2e.provider",
   model: "t2e.model",
 };
@@ -74,18 +75,16 @@ export default function App() {
   );
   const [model, setModel] = useState(() => localStorage.getItem(LS.model) || "");
   const [keys, setKeys] = useState(() => {
-    // Stored per-user keys win; Vite env vars (from a local .env) provide
-    // optional defaults so a developer can ship a pre-filled key without
-    // committing secrets. Keys never leave the browser except to the chosen
-    // provider.
-    const env = {
-      gemini: import.meta.env.VITE_GEMINI_API_KEY || "",
-      groq: import.meta.env.VITE_GROQ_API_KEY || "",
-      openrouter: import.meta.env.VITE_OPENROUTER_API_KEY || "",
-      ollamaBase: import.meta.env.VITE_OLLAMA_BASE_URL || "",
-    };
+    // Local-only keys the user typed in the UI. The shared defaults live on
+    // the server (/api/generate) and are never exposed to the browser, so a
+    // pre-filled Ollama base URL is the only optional local default kept here.
+    const env = { ollamaBase: import.meta.env.VITE_OLLAMA_BASE_URL || "" };
     return { ...env, ...loadJSON(LS.keys, {}) };
   });
+  // Per-provider flag: "I bring my own key" vs. the site's hidden shared key.
+  const [useOwnKey, setUseOwnKey] = useState(() =>
+    loadJSON(LS.ownKey, {})
+  );
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState({ type: "idle", msg: "" });
 
@@ -104,6 +103,16 @@ export default function App() {
     },
     []
   );
+
+  // Toggle between "use the site's hidden shared key" and "let me paste mine".
+  const toggleOwnKey = (e) => {
+    const next = e.target.checked;
+    setUseOwnKey((prev) => {
+      const updated = { ...prev, [provider]: next };
+      saveJSON(LS.ownKey, updated);
+      return updated;
+    });
+  };
 
   const onProviderChange = (e) => {
     const p = e.target.value;
@@ -128,13 +137,32 @@ export default function App() {
 
     let gen;
     try {
-      gen = await generateMermaid({
-        provider,
-        apiKey,
-        model: currentModel,
-        baseUrl: keys.ollamaBase,
-        prompt: prompt.trim(),
-      });
+      if (provider === "ollama") {
+        gen = await generateMermaid({
+          provider,
+          apiKey,
+          model: currentModel,
+          baseUrl: keys.ollamaBase,
+          prompt: prompt.trim(),
+        });
+      } else if (useOwnKey[provider] && apiKey) {
+        // User brings their own key -> call the provider straight from the
+        // browser, so their key never transits our server.
+        gen = await generateMermaid({
+          provider,
+          apiKey,
+          model: currentModel,
+          prompt: prompt.trim(),
+        });
+      } else {
+        // No user key -> use the site's shared key via our serverless function.
+        // The shared key is server-side only and never visible to the browser.
+        gen = await generateMermaidFromServer({
+          provider,
+          model: currentModel,
+          prompt: prompt.trim(),
+        });
+      }
     } catch (err) {
       setBusy(false);
       setStatus({ type: "error", msg: `LLM error: ${err.message}` });
@@ -194,7 +222,7 @@ export default function App() {
   } finally {
     setBusy(false);
   }
-}, [busy, prompt, provider, apiKey, currentModel, keys.ollamaBase]);
+}, [busy, prompt, provider, apiKey, currentModel, keys.ollamaBase, useOwnKey]);
 
   const statusClass = useMemo(() => {
     switch (status.type) {
@@ -247,14 +275,30 @@ export default function App() {
           </datalist>
 
           {needsKey ? (
-            <input
-              className="key-input"
-              type="password"
-              placeholder={`${PROVIDERS[provider].label} API key`}
-              value={apiKey}
-              onChange={(e) => updateKeys({ [provider]: e.target.value })}
-              aria-label="API key"
-            />
+            <div className="key-wrap">
+              <label className="own-key-toggle">
+                <input
+                  type="checkbox"
+                  checked={!!useOwnKey[provider]}
+                  onChange={toggleOwnKey}
+                />
+                <span>Use my own key</span>
+              </label>
+              {useOwnKey[provider] ? (
+                <input
+                  className="key-input"
+                  type="password"
+                  placeholder={`${PROVIDERS[provider].label} API key`}
+                  value={apiKey}
+                  onChange={(e) => updateKeys({ [provider]: e.target.value })}
+                  aria-label="API key"
+                />
+              ) : (
+                <span className="shared-note" title="Powered by the site's built-in key. It is server-side only and never shown in your browser.">
+                  using built-in key
+                </span>
+              )}
+            </div>
           ) : (
             <input
               className="key-input"

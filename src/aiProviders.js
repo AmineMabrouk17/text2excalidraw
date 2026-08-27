@@ -172,6 +172,41 @@ async function callOllama({ model, prompt, baseUrl }) {
 }
 
 /**
+ * Call our own serverless endpoint (/api/generate) which holds the site's
+ * shared API keys. The keys never reach the browser. Returns the same
+ * normalized shape as generateMermaid(): { provider, model, mermaid, raw }.
+ * @param {Object} config
+ * @param {string} config.provider gemini | groq | openrouter
+ * @param {string} [config.model]
+ * @param {string} config.prompt
+ */
+export async function generateMermaidFromServer({ provider, model, prompt }) {
+  let res;
+  try {
+    res = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider, model, prompt }),
+    });
+  } catch (err) {
+    throw new Error(
+      "Couldn't reach the shared-key server. Check your connection, or add your own key."
+    );
+  }
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {}
+  if (!res.ok) {
+    throw new Error(data?.error || `Server error (HTTP ${res.status}).`);
+  }
+  if (!data?.mermaid) {
+    throw new Error("The server didn't return a usable diagram.");
+  }
+  return data;
+}
+
+/**
  * Generate a Mermaid diagram from a natural language prompt.
  * @param {Object} config
  * @param {string} config.provider  one of: gemini | groq | openrouter | ollama
