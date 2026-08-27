@@ -2,8 +2,6 @@
   <img src="public/text2excalidraw-banner.svg?raw=1" alt="Text2Excalidraw logo" width="500" />
 </p>
 
-<h1 align="center">Text2Excalidraw</h1>
-
 <p align="center">
   <b>Prompts in. Editable diagrams out.</b><br/>
   Turn a sentence into a real, editable diagram — using free AI.
